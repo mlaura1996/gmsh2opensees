@@ -111,6 +111,29 @@ def get_displacements_at_nodes(nodeTags, component=-1):
 
 	return disps
 
+def get_reactions_at_nodes(nodeTags):
+    """
+    Helper function to return an array of nodal reactions corresponding to 
+    a list of node tags.
+    """
+    from numpy import unique, array, zeros
+
+    # Ensure unique node tags
+    nodeTags = unique(array(nodeTags).reshape(-1))
+
+    # Prepare an array to hold reaction forces
+    Nnodes = len(nodeTags)
+    reactions = zeros((Nnodes, 3), dtype=float)
+
+    # Populate the reaction array for each node
+    for i, tag in enumerate(nodeTags):
+        tag = int(tag)
+        reactions[i, :] = [ops.nodeReaction(tag, 1),
+                           ops.nodeReaction(tag, 2),
+                           ops.nodeReaction(tag, 3)]
+
+    return reactions
+
 
 def get_eigenvector_at_nodes(nodeTags, mode=1):
 	"""
