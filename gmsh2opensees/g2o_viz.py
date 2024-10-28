@@ -55,6 +55,49 @@ def visualize_displacements_in_gmsh(gmshmodel, nodeTags=[], viewnum=-1,step=0,ti
 
     return viewnum
 
+def visualize_reactions_in_gmsh(gmshmodel, nodeTags=[], viewnum=-1, step=0, time=0., new_view_name="Reactions"):
+    """
+    Visualize reaction force field in gmsh, only for defined nodes.
+    If view-number is not supplied, will create a new view.
+    If you want an animation, create the view outside (or call this function without specifying a view),
+    this function will output the view number (handle), then you can call this with
+    data for subsequent steps by specifying a different step and time, but passing
+    the view number.
+
+    Call once per time-step.
+
+    You can also change the default name of the view.
+    """
+    import gmsh
+
+    # Check if nodeTags is empty; if so, get all node tags in the model
+    if len(nodeTags) == 0:
+        allGmshNodeTags, _ = get_all_nodes(gmshmodel)
+    else:
+        allGmshNodeTags = nodeTags
+    
+    # Retrieve reaction forces for each node (ensure get_reactions_at_nodes is defined)
+
+    reaction_data = get_reactions_at_nodes(allGmshNodeTags)
+
+    # Create a new view if viewnum is not specified
+    if viewnum == -1:
+        viewnum = gmsh.view.add(new_view_name)
+
+    # Add the reaction data to the Gmsh view
+    gmsh.view.addHomogeneousModelData(
+        tag=viewnum,
+        step=step,
+        time=time,
+        modelName=gmsh.model.getCurrent(),
+        dataType="NodeData",
+        numComponents=-1,
+        tags=allGmshNodeTags,
+        data=reaction_data.reshape((-1))
+    )
+
+    return viewnum
+
 
 
 def visualize_eigenmode_in_gmsh(gmshmodel, mode=1, f=0, viewnum=-1,step=0,time=0.,new_view_name="Mode",animate=False,normalize=True, nsteps=10, factor=0.):
